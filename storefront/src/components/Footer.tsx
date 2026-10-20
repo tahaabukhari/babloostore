@@ -26,7 +26,7 @@ const columns = [
     ],
   },
   {
-    title: "Sell on HomeBEZ",
+    title: "Sell on BablooStore",
     links: [
       { label: "How sellers are approved", href: "#" },
       { label: "Seller sign-in (invited sellers)", href: "#" },
@@ -41,7 +41,7 @@ export function Footer() {
         <div className="lg:col-span-1">
           <div className="flex items-center gap-2">
             <Image src="/brand/homebez-symbol.png" alt="" width={40} height={40} className="size-10" />
-            <Image src="/brand/homebez-wordmark.png" alt="HomeBEZ" width={568} height={96} className="h-6 w-auto" />
+            <Image src="/brand/homebez-wordmark.png" alt="BablooStore" width={568} height={96} className="h-6 w-auto" />
           </div>
           <p className="mt-3 text-sm">Everything you need, from approved Pakistani stores.</p>
         </div>
@@ -65,7 +65,7 @@ export function Footer() {
           <p>
             Payment options: Cash on delivery · Card and wallet payments (pending provider approval). Prices in PKR.
           </p>
-          <p>© 2026 HomeBEZ · Design prototype</p>
+          <p>© 2026 BablooStore · Design prototype</p>
         </div>
       </div>
     </footer>

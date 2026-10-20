@@ -135,7 +135,7 @@ export default async function ProductPage({ params }: Props) {
               <h2 className="font-heading text-base font-bold">{store.name}</h2>
             </div>
             <p className="mt-0.5 text-xs text-ink-secondary">
-              {store.city} · on HomeBEZ since {store.since}
+              {store.city} · on BablooStore since {store.since}
             </p>
             <div className="mt-3">
               <TrustBadge verified={store.verified} explanation={store.verification} />

@@ -1,4 +1,6 @@
-# HomeBEZ storefront — Pass 1 (design)
+# BablooStore storefront — Pass 1 (design)
+
+Rebranded from HomeBEZ (the brand used in the blueprint docs). Logo images in `public/brand` still show HomeBEZ until new ones are supplied.
 
 Next.js 15 (App Router) + Tailwind v4 prototype of the shopper storefront, built on the locked v1 tokens in [`../design/tokens.css`](../design/tokens.css) and the rules in [`../docs/03-design-system.md`](../docs/03-design-system.md).
 

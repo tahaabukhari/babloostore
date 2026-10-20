@@ -11,7 +11,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "sw
 const manrope = Manrope({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-manrope", display: "swap" });
 
 export const metadata: Metadata = {
-  title: { default: "HomeBEZ — Everything you need, all in one place", template: "%s · HomeBEZ" },
+  title: { default: "BablooStore — Everything you need, all in one place", template: "%s · BablooStore" },
   description: "Curated Pakistani marketplace: fashion, beauty, jewellery, electronic accessories and home.",
 };
 

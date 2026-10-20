@@ -63,12 +63,12 @@ export default function HomePage() {
       </section>
 
       {/* 5. Service strip — verified promises only */}
-      <section aria-label="Shopping with HomeBEZ">
+      <section aria-label="Shopping with BablooStore">
         <ul className="grid grid-cols-2 gap-3 rounded-card border border-border bg-surface p-3 text-sm lg:grid-cols-4 lg:p-4">
           {[
             { Icon: Banknote, title: "Cash on delivery", body: "Available on all listed stores" },
             { Icon: RotateCcw, title: "Store return rules", body: "Shown on every product before you pay" },
-            { Icon: ShieldCheck, title: "Approved sellers only", body: "Every store is reviewed by HomeBEZ" },
+            { Icon: ShieldCheck, title: "Approved sellers only", body: "Every store is reviewed by BablooStore" },
             { Icon: Truck, title: "Delivery fee per store", body: "Each store ships separately" },
           ].map(({ Icon, title, body }) => (
             <li key={title} className="flex items-start gap-2.5">
@@ -182,7 +182,7 @@ export default function HomePage() {
                   <div>
                     <h3 className="font-heading text-base font-bold">{s.name}</h3>
                     <p className="text-xs text-ink-secondary">
-                      {s.city} · on HomeBEZ since {s.since}
+                      {s.city} · on BablooStore since {s.since}
                     </p>
                   </div>
                 </div>

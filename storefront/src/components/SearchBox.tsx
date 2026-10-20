@@ -95,7 +95,7 @@ export function SearchBox({ id: idProp }: { id?: string }) {
         }}
       >
         <label htmlFor={id} className="sr-only">
-          Search HomeBEZ
+          Search BablooStore
         </label>
         <div className="flex h-11 items-stretch overflow-hidden rounded-control bg-surface ring-1 ring-transparent focus-within:ring-2 focus-within:ring-gold">
           <Search aria-hidden className="ml-3 size-5 self-center text-ink-secondary" />

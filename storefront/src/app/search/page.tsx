@@ -45,7 +45,7 @@ export default async function SearchPage({ searchParams }: Props) {
             <TrustBadge verified={store.verified} explanation={store.verification} />
           </div>
           <p className="mt-1 text-sm text-ink-secondary">
-            {store.city} · on HomeBEZ since {store.since} · Dispatches in {store.dispatchDays} · {store.returnPolicy}
+            {store.city} · on BablooStore since {store.since} · Dispatches in {store.dispatchDays} · {store.returnPolicy}
           </p>
         </section>
       )}
