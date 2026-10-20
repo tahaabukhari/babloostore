@@ -1,0 +1,58 @@
+/* HomeBEZ v1 design specification. Font files must be licensed and loaded separately. */
+:root {
+  --hb-canvas: #f7f5ef;
+  --hb-surface: #ffffff;
+  --hb-surface-muted: #f0ede5;
+  --hb-ink: #191a18;
+  --hb-ink-secondary: #55584f;
+  --hb-gold: #f4c451;
+  --hb-gold-hover: #e7b33b;
+  --hb-gold-soft: #fff2c7;
+  --hb-gold-ink: #735008;
+  --hb-green: #216448;
+  --hb-green-soft: #e8f2ec;
+  --hb-danger: #b42318;
+  --hb-danger-soft: #fff0ed;
+  --hb-info: #2857a4;
+  --hb-border: #dedfd8;
+  --hb-control-border: #7a7d73;
+  --hb-focus: #2857a4;
+  --hb-focus-on-dark: #fff2c7;
+  --hb-font-heading: 'Manrope', 'Inter', system-ui, sans-serif;
+  --hb-font-body: 'Inter', system-ui, sans-serif;
+  --hb-font-urdu: 'Noto Sans Arabic', system-ui, sans-serif;
+  --hb-space-1: 4px;
+  --hb-space-2: 8px;
+  --hb-space-3: 12px;
+  --hb-space-4: 16px;
+  --hb-space-5: 20px;
+  --hb-space-6: 24px;
+  --hb-space-8: 32px;
+  --hb-space-10: 40px;
+  --hb-space-12: 48px;
+  --hb-space-16: 64px;
+  --hb-radius-control: 10px;
+  --hb-radius-card: 12px;
+  --hb-radius-campaign: 20px;
+  --hb-radius-pill: 999px;
+  --hb-content-max: 1320px;
+  --hb-touch-target: 44px;
+  --hb-shadow-card-hover: 0 4px 14px rgb(25 26 24 / 8%);
+  --hb-shadow-overlay: 0 16px 48px rgb(25 26 24 / 16%);
+  --hb-motion-fast: 150ms;
+  --hb-motion-panel: 220ms;
+}
+
+/* Scope Urdu typography and direction to actual Urdu content in implementation. */
+:lang(ur) {
+  font-family: var(--hb-font-urdu);
+  line-height: 1.8;
+  letter-spacing: normal;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --hb-motion-fast: 0ms;
+    --hb-motion-panel: 0ms;
+  }
+}

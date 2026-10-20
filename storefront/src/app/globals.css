@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+/* HomeBEZ v1 tokens — mirrors ../design/tokens.css. Keep both in sync. */
+:root {
+  --hb-canvas: #f7f5ef;
+  --hb-surface: #ffffff;
+  --hb-surface-muted: #f0ede5;
+  --hb-ink: #191a18;
+  --hb-ink-secondary: #55584f;
+  --hb-gold: #f4c451;
+  --hb-gold-hover: #e7b33b;
+  --hb-gold-soft: #fff2c7;
+  --hb-gold-ink: #735008;
+  --hb-green: #216448;
+  --hb-green-soft: #e8f2ec;
+  --hb-danger: #b42318;
+  --hb-danger-soft: #fff0ed;
+  --hb-info: #2857a4;
+  --hb-border: #dedfd8;
+  --hb-control-border: #7a7d73;
+  --hb-focus: #2857a4;
+  --hb-focus-on-dark: #fff2c7;
+  --hb-shadow-card-hover: 0 4px 14px rgb(25 26 24 / 8%);
+  --hb-shadow-overlay: 0 16px 48px rgb(25 26 24 / 16%);
+  --hb-motion-fast: 150ms;
+  --hb-motion-panel: 220ms;
+}
+
+@theme inline {
+  --color-canvas: var(--hb-canvas);
+  --color-surface: var(--hb-surface);
+  --color-surface-muted: var(--hb-surface-muted);
+  --color-ink: var(--hb-ink);
+  --color-ink-secondary: var(--hb-ink-secondary);
+  --color-gold: var(--hb-gold);
+  --color-gold-hover: var(--hb-gold-hover);
+  --color-gold-soft: var(--hb-gold-soft);
+  --color-gold-ink: var(--hb-gold-ink);
+  --color-green: var(--hb-green);
+  --color-green-soft: var(--hb-green-soft);
+  --color-danger: var(--hb-danger);
+  --color-danger-soft: var(--hb-danger-soft);
+  --color-info: var(--hb-info);
+  --color-border: var(--hb-border);
+  --color-control: var(--hb-control-border);
+  --color-focus: var(--hb-focus);
+  --color-focus-dark: var(--hb-focus-on-dark);
+
+  --font-heading: var(--font-manrope), "Inter", system-ui, sans-serif;
+  --font-body: var(--font-inter), system-ui, sans-serif;
+
+  --radius-control: 10px;
+  --radius-card: 12px;
+  --radius-campaign: 20px;
+
+  --shadow-card: var(--hb-shadow-card-hover);
+  --shadow-overlay: var(--hb-shadow-overlay);
+
+  --breakpoint-sm: 640px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--hb-canvas);
+  color: var(--hb-ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+}
+
+/* Focus: blue on light surfaces, soft gold inside dark regions. */
+:focus-visible {
+  outline: 3px solid var(--hb-focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.on-dark :focus-visible {
+  outline-color: var(--hb-focus-on-dark);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.container-hb {
+  width: 100%;
+  max-width: 1320px;
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+@media (min-width: 640px) {
+  .container-hb { padding-inline: 24px; }
+}
+@media (min-width: 1024px) {
+  .container-hb { padding-inline: 32px; }
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.scroll-row {
+  scrollbar-width: thin;
+  scroll-snap-type: x mandatory;
+}
+.scroll-row > * { scroll-snap-align: start; }
+
+.transition-hb {
+  transition-duration: var(--hb-motion-fast);
+  transition-timing-function: ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --hb-motion-fast: 0ms;
+    --hb-motion-panel: 0ms;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes hb-sheet-in {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes hb-drawer-in {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+@keyframes hb-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes hb-toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes hb-spin {
+  to { transform: rotate(360deg); }
+}
