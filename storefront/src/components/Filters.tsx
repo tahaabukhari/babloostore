@@ -3,7 +3,9 @@
 import { SlidersHorizontal, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { categories, getCategory, getStore, searchProducts, stores, type SearchParams } from "@/lib/data";
+import { categories, getCategory, type SearchParams } from "@/lib/data";
+
+export type StoreOption = { slug: string; name: string; city: string };
 import { Button } from "./ui";
 
 type Draft = Pick<SearchParams, "category" | "store" | "min" | "max" | "instock">;
@@ -28,7 +30,17 @@ function useFilterUrl() {
   return { params, current, apply };
 }
 
-function FilterFields({ value, onChange, idPrefix }: { value: Draft; onChange: (d: Draft) => void; idPrefix: string }) {
+function FilterFields({
+  value,
+  onChange,
+  idPrefix,
+  stores,
+}: {
+  value: Draft;
+  onChange: (d: Draft) => void;
+  idPrefix: string;
+  stores: StoreOption[];
+}) {
   const set = (patch: Partial<Draft>) => onChange({ ...value, ...patch });
   const radio = "size-5 accent-[#191A18]";
   const row = "flex min-h-11 cursor-pointer items-center gap-3 rounded-control px-2 text-sm hover:bg-surface-muted";
@@ -139,7 +151,7 @@ function FilterFields({ value, onChange, idPrefix }: { value: Draft; onChange: (
 }
 
 // Desktop: changes apply immediately and update the URL.
-export function FilterSidebar() {
+export function FilterSidebar({ stores }: { stores: StoreOption[] }) {
   const { current, apply } = useFilterUrl();
   return (
     <aside aria-labelledby="filters-heading" className="hidden lg:block">
@@ -147,21 +159,20 @@ export function FilterSidebar() {
         <h2 id="filters-heading" className="mb-4 text-base font-bold">
           Filters
         </h2>
-        <FilterFields value={current} onChange={apply} idPrefix="side" />
+        <FilterFields value={current} onChange={apply} idPrefix="side" stores={stores} />
       </div>
     </aside>
   );
 }
 
 // Mobile: full-width bottom sheet; changes are applied explicitly, focus returns to the trigger.
-export function MobileFilterButton() {
-  const { params, current, apply } = useFilterUrl();
+export function MobileFilterButton({ stores }: { stores: StoreOption[] }) {
+  const { current, apply } = useFilterUrl();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Draft>(current);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const activeCount = FILTER_KEYS.filter((k) => current[k]).length;
-  const preview = searchProducts({ q: params.get("q") ?? undefined, ...draft }).length;
 
   useEffect(() => {
     if (!open) return;
@@ -214,7 +225,7 @@ export function MobileFilterButton() {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-4 py-4">
-              <FilterFields value={draft} onChange={setDraft} idPrefix="sheet" />
+              <FilterFields value={draft} onChange={setDraft} idPrefix="sheet" stores={stores} />
             </div>
             <div className="flex gap-3 border-t border-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
               <Button variant="secondary" className="flex-1" onClick={() => setDraft({})}>
@@ -222,13 +233,12 @@ export function MobileFilterButton() {
               </Button>
               <Button
                 className="flex-[2]"
-                disabled={preview === 0}
                 onClick={() => {
                   apply(draft);
                   close();
                 }}
               >
-                {preview === 0 ? "No results" : `Show ${preview} result${preview === 1 ? "" : "s"}`}
+                Apply filters
               </Button>
             </div>
           </div>
@@ -238,11 +248,11 @@ export function MobileFilterButton() {
   );
 }
 
-export function SelectedChips() {
+export function SelectedChips({ stores }: { stores: StoreOption[] }) {
   const { current, apply } = useFilterUrl();
   const chips: { key: keyof Draft; label: string }[] = [];
   if (current.category) chips.push({ key: "category", label: getCategory(current.category)?.name ?? current.category });
-  if (current.store) chips.push({ key: "store", label: getStore(current.store)?.name ?? current.store });
+  if (current.store) chips.push({ key: "store", label: stores.find((s) => s.slug === current.store)?.name ?? current.store });
   if (current.min) chips.push({ key: "min", label: `From Rs. ${Number(current.min).toLocaleString("en-PK")}` });
   if (current.max) chips.push({ key: "max", label: `Up to Rs. ${Number(current.max).toLocaleString("en-PK")}` });
   if (current.instock) chips.push({ key: "instock", label: "In stock only" });
@@ -296,7 +306,6 @@ export function SortSelect() {
         <option value="newest">Newest</option>
         <option value="price-asc">Price: low to high</option>
         <option value="price-desc">Price: high to low</option>
-        <option value="rating">Top rated</option>
       </select>
     </div>
   );

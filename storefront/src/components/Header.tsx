@@ -134,11 +134,14 @@ function CategoryDrawer({ open, onClose }: { open: boolean; onClose: () => void 
             ))}
           </ul>
           <ul className="p-4 text-sm">
-            {["Track order", "Help & support", "Seller sign-in"].map((l) => (
-              <li key={l}>
-                <a href="#" className="flex min-h-11 items-center text-ink-secondary hover:text-ink">
-                  {l}
-                </a>
+            {[
+              { label: "My orders", href: "/account" },
+              { label: "Store owner dashboard", href: "/dashboard" },
+            ].map((l) => (
+              <li key={l.label}>
+                <Link href={l.href} onClick={onClose} className="flex min-h-11 items-center text-ink-secondary hover:text-ink">
+                  {l.label}
+                </Link>
               </li>
             ))}
           </ul>
@@ -148,7 +151,9 @@ function CategoryDrawer({ open, onClose }: { open: boolean; onClose: () => void 
   );
 }
 
-export function Header() {
+export type HeaderUser = { name: string; isOwner: boolean } | null;
+
+export function Header({ user }: { user: HeaderUser }) {
   const [drawer, setDrawer] = useState(false);
   const pathname = usePathname();
 
@@ -157,22 +162,17 @@ export function Header() {
       {/* 1. Utility row */}
       <div className="hidden bg-surface-muted text-xs text-ink-secondary sm:block">
         <div className="container-hb flex h-8 items-center justify-between">
-          <p>Cash on delivery available · Delivery across Pakistan, subject to courier coverage</p>
+          <p>Cash on delivery · Each store ships its own items</p>
           <ul className="flex items-center gap-4">
             <li>
-              <a href="#" className="hover:text-ink hover:underline">
-                Help & support
-              </a>
+              <Link href="/account" className="hover:text-ink hover:underline">
+                My orders
+              </Link>
             </li>
             <li>
-              <a href="#" className="hover:text-ink hover:underline">
-                Track order
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-ink hover:underline">
-                Seller sign-in
-              </a>
+              <Link href="/dashboard" className="hover:text-ink hover:underline">
+                {user?.isOwner ? "Store dashboard" : "Store owner sign-in"}
+              </Link>
             </li>
           </ul>
         </div>
@@ -198,16 +198,18 @@ export function Header() {
             </Suspense>
           </div>
           <div className="ml-auto flex items-center gap-1 sm:ml-0">
-            <a
-              href="#"
+            <Link
+              href={user ? "/account" : "/login"}
               className="hidden min-h-11 items-center gap-2 rounded-control px-2 hover:bg-white/10 lg:flex"
             >
               <User aria-hidden className="size-6" />
               <span className="flex flex-col text-left leading-tight">
-                <span className="text-[11px] text-white/70">Hello, sign in</span>
+                <span className="max-w-32 truncate text-[11px] text-white/70">
+                  {user ? `Hello, ${user.name.split(" ")[0]}` : "Hello, sign in"}
+                </span>
                 <span className="text-sm font-semibold">Account</span>
               </span>
-            </a>
+            </Link>
             <a
               href="#"
               aria-label="Wishlist"
@@ -264,12 +266,20 @@ export function Header() {
       </nav>
 
       <CategoryDrawer open={drawer} onClose={() => setDrawer(false)} />
-      <MobileBottomNav pathname={pathname} onCategories={() => setDrawer(true)} />
+      <MobileBottomNav pathname={pathname} signedIn={!!user} onCategories={() => setDrawer(true)} />
     </>
   );
 }
 
-function MobileBottomNav({ pathname, onCategories }: { pathname: string; onCategories: () => void }) {
+function MobileBottomNav({
+  pathname,
+  signedIn,
+  onCategories,
+}: {
+  pathname: string;
+  signedIn: boolean;
+  onCategories: () => void;
+}) {
   const { count, ready } = useCart();
   const item = "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium";
   const on = (p: string) => (pathname === p ? "text-gold-ink" : "text-ink-secondary");
@@ -290,9 +300,9 @@ function MobileBottomNav({ pathname, onCategories }: { pathname: string; onCateg
         <ShoppingCart aria-hidden className="size-5" />
         Cart{ready && count > 0 ? ` (${count})` : ""}
       </Link>
-      <a href="#" className={`${item} text-ink-secondary`}>
+      <Link href={signedIn ? "/account" : "/login"} className={`${item} ${on("/account")}`}>
         <User aria-hidden className="size-5" /> Account
-      </a>
+      </Link>
     </nav>
   );
 }

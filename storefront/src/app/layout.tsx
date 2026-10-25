@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Manrope } from "next/font/google";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
 import { ToastProvider } from "@/components/Toast";
 import { CartProvider } from "@/lib/cart";
 import "./globals.css";
@@ -12,7 +10,7 @@ const manrope = Manrope({ subsets: ["latin"], weight: ["600", "700", "800"], var
 
 export const metadata: Metadata = {
   title: { default: "BablooStore — Everything you need, all in one place", template: "%s · BablooStore" },
-  description: "Curated Pakistani marketplace: fashion, beauty, jewellery, electronic accessories and home.",
+  description: "Pakistani marketplace of independent stores: fashion, beauty, jewellery, electronic accessories and home.",
 };
 
 export const viewport: Viewport = {
@@ -30,16 +28,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           Skip to content
         </a>
         <CartProvider>
-          <ToastProvider>
-            <div className="bg-gold-soft text-center text-xs leading-6 text-gold-ink">
-              Design prototype — prices, stock, stores and reviews are illustrative.
-            </div>
-            <Header />
-            <main id="main" className="pb-16 sm:pb-0">
-              {children}
-            </main>
-            <Footer />
-          </ToastProvider>
+          <ToastProvider>{children}</ToastProvider>
         </CartProvider>
       </body>
     </html>

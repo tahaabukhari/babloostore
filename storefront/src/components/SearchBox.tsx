@@ -3,7 +3,7 @@
 import { History, Search, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
-import { categories, suggest } from "@/lib/data";
+import { categories } from "@/lib/data";
 
 const RECENT_KEY = "hb-recent-searches";
 
@@ -41,7 +41,22 @@ export function SearchBox({ id: idProp }: { id?: string }) {
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  const matches = suggest(query);
+  const [matches, setMatches] = useState<{ slug: string; title: string }[]>([]);
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) return setMatches([]);
+    const ctrl = new AbortController();
+    const t = setTimeout(() => {
+      fetch(`/api/suggest?q=${encodeURIComponent(q)}`, { signal: ctrl.signal })
+        .then((r) => (r.ok ? r.json() : []))
+        .then(setMatches)
+        .catch(() => {});
+    }, 150);
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
+  }, [query]);
   const options: { key: string; label: string; kind: "product" | "recent" | "category"; value: string }[] = query
     ? [
         ...matches.map((p) => ({ key: p.slug, label: p.title, kind: "product" as const, value: p.slug })),

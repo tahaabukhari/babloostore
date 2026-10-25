@@ -1,12 +1,13 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { getProduct } from "./data";
 
+// The cart only stores what the shopper picked. Prices, stock and titles are
+// always re-read from the database (cart page and checkout), never trusted from here.
 export type CartLine = {
   id: string;
-  slug: string;
-  variant: Record<string, string>;
+  productId: string;
+  options: Record<string, string>;
   qty: number;
 };
 
@@ -14,26 +15,25 @@ type CartContextValue = {
   lines: CartLine[];
   count: number;
   ready: boolean;
-  add: (slug: string, variant: Record<string, string>, qty: number) => void;
+  add: (productId: string, options: Record<string, string>, qty: number, max: number) => void;
   setQty: (id: string, qty: number) => void;
   remove: (id: string) => CartLine | undefined;
   restore: (line: CartLine) => void;
+  clear: () => void;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
-const KEY = "hb-cart-v1";
+const KEY = "bs-cart-v2";
 
-// Seeded two-seller cart so the multi-vendor layout can be reviewed on first load.
-const seed: CartLine[] = [
-  { id: "printed-lawn-3pc-suit|Colour:Sage", slug: "printed-lawn-3pc-suit", variant: { Colour: "Sage" }, qty: 1 },
-  { id: "oud-attar-12ml|Volume:12 ml", slug: "oud-attar-12ml", variant: { Volume: "12 ml" }, qty: 2 },
-  { id: "brass-table-lamp|", slug: "brass-table-lamp", variant: {}, qty: 3 },
-];
-
-export function lineId(slug: string, variant: Record<string, string>) {
-  return `${slug}|${Object.entries(variant)
+export function lineId(productId: string, options: Record<string, string>) {
+  return `${productId}|${Object.entries(options)
     .map(([k, v]) => `${k}:${v}`)
     .join(",")}`;
+}
+
+function isLine(x: unknown): x is CartLine {
+  const l = x as CartLine;
+  return !!l && typeof l.productId === "string" && typeof l.qty === "number" && typeof l.options === "object";
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
@@ -41,12 +41,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    let initial = seed;
     try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) initial = (JSON.parse(raw) as CartLine[]).filter((l) => getProduct(l.slug));
+      const raw = JSON.parse(localStorage.getItem(KEY) ?? "[]");
+      if (Array.isArray(raw)) setLines(raw.filter(isLine));
     } catch {}
-    setLines(initial);
     setReady(true);
   }, []);
 
@@ -57,13 +55,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [lines, ready]);
 
-  const add = useCallback((slug: string, variant: Record<string, string>, qty: number) => {
-    const id = lineId(slug, variant);
-    const stock = getProduct(slug)?.stock ?? 0;
+  const add = useCallback((productId: string, options: Record<string, string>, qty: number, max: number) => {
+    const id = lineId(productId, options);
     setLines((prev) => {
       const existing = prev.find((l) => l.id === id);
-      if (existing) return prev.map((l) => (l.id === id ? { ...l, qty: Math.min(stock, l.qty + qty) } : l));
-      return [...prev, { id, slug, variant, qty: Math.min(stock, qty) }];
+      if (existing) return prev.map((l) => (l.id === id ? { ...l, qty: Math.min(max, l.qty + qty) } : l));
+      return [...prev, { id, productId, options, qty: Math.min(max, qty) }];
     });
   }, []);
 
@@ -84,9 +81,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setLines((prev) => (prev.some((l) => l.id === line.id) ? prev : [...prev, line]));
   }, []);
 
+  const clear = useCallback(() => setLines([]), []);
+
   const value = useMemo(
-    () => ({ lines, ready, count: lines.reduce((n, l) => n + l.qty, 0), add, setQty, remove, restore }),
-    [lines, ready, add, setQty, remove, restore],
+    () => ({ lines, ready, count: lines.reduce((n, l) => n + l.qty, 0), add, setQty, remove, restore, clear }),
+    [lines, ready, add, setQty, remove, restore, clear],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

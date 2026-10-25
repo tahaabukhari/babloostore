@@ -12,7 +12,7 @@ import {
   Brush,
   Loader2,
   PackageCheck,
-  RotateCcw,
+
   Shirt,
   ShoppingBag,
   Sofa,
@@ -29,7 +29,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { ArtKind } from "@/lib/data";
-import { formatPrice } from "@/lib/data";
+import { categoryArt, formatPrice } from "@/lib/data";
 
 /* ---------- Buttons ---------- */
 
@@ -138,6 +138,33 @@ export function ProductArt({
   );
 }
 
+/** Seller photo when there is one, otherwise category placeholder art. */
+export function ProductImage({
+  src,
+  category,
+  alt,
+  className = "",
+  angle = 0,
+}: {
+  src?: string | null;
+  category: string;
+  alt: string;
+  className?: string;
+  angle?: number;
+}) {
+  if (src) {
+    return (
+      <div className={`relative aspect-square overflow-hidden bg-surface-muted ${className}`}>
+        {/* Arbitrary seller-hosted URLs, so a plain img rather than next/image. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt={alt} loading="lazy" decoding="async" className="size-full object-contain" />
+      </div>
+    );
+  }
+  const { kind, tone } = categoryArt(category);
+  return <ProductArt kind={kind} tone={tone} angle={angle} className={className} label={alt || undefined} />;
+}
+
 /* ---------- Price ---------- */
 
 export function Price({
@@ -208,15 +235,14 @@ export function TrustBadge({ verified, explanation }: { verified: boolean; expla
 
 /* ---------- Status label ---------- */
 
-export type OrderStatus = "pending" | "paid" | "shipped" | "delivered" | "refunded" | "rejected";
+export type OrderStatus = "new" | "confirmed" | "shipped" | "delivered" | "cancelled";
 
-const statusMap: Record<OrderStatus, { label: string; Icon: LucideIcon; cls: string }> = {
-  pending: { label: "Pending", Icon: Clock, cls: "bg-gold-soft text-gold-ink" },
-  paid: { label: "Paid", Icon: CheckCircle2, cls: "bg-green-soft text-green" },
+export const statusMap: Record<OrderStatus, { label: string; Icon: LucideIcon; cls: string }> = {
+  new: { label: "New", Icon: Clock, cls: "bg-gold-soft text-gold-ink" },
+  confirmed: { label: "Confirmed", Icon: CheckCircle2, cls: "bg-green-soft text-green" },
   shipped: { label: "Shipped", Icon: Truck, cls: "bg-[#E8EEF8] text-info" },
   delivered: { label: "Delivered", Icon: PackageCheck, cls: "bg-green-soft text-green" },
-  refunded: { label: "Refunded", Icon: RotateCcw, cls: "bg-surface-muted text-ink-secondary" },
-  rejected: { label: "Rejected", Icon: XCircle, cls: "bg-danger-soft text-danger" },
+  cancelled: { label: "Cancelled", Icon: XCircle, cls: "bg-danger-soft text-danger" },
 };
 
 export function StatusLabel({ status }: { status: OrderStatus }) {

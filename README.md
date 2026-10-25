@@ -34,7 +34,7 @@ The visual system is the chosen v1 baseline. Rendered screens still need review 
 
 ## Storefront prototype
 
-[storefront/](storefront/README.md) holds the Pass 1 design build: a Next.js storefront covering desktop and mobile home, catalog/search, product detail, a two-seller cart and a component review kit. Data is illustrative; backend implementation follows in later passes.
+[storefront/](storefront/README.md) is the BablooStore Next.js marketplace: Postgres (Neon) via Drizzle, email/password accounts, store owner dashboard (products and orders), and cash-on-delivery checkout that splits orders per store.
 
 ## Saved references and verification
 

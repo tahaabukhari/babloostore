@@ -3,20 +3,28 @@
 import { Check, Minus, Plus, ShoppingCart, X, ZoomIn } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { formatPrice, type Product, type ProductOption } from "@/lib/data";
+import { formatPrice } from "@/lib/data";
 import { useCart } from "@/lib/cart";
 import { useToast } from "./Toast";
-import { Button, ProductArt, StockLine } from "./ui";
+import { Button, ProductImage, StockLine } from "./ui";
+
+type OptionValue = { label: string; swatch?: string; available: boolean; reason?: string };
+export type ProductOption = { name: string; values: OptionValue[] };
+
+/** Options as stored in the database (plain value lists; every value is buyable). */
+export function toSelectorOptions(options: { name: string; values: string[] }[]): ProductOption[] {
+  return options.map((o) => ({ name: o.name, values: o.values.map((v) => ({ label: v, available: true })) }));
+}
 
 /* ---------- Gallery ---------- */
 
-const views = ["Front", "Angle", "Detail", "Side"];
-
-export function Gallery({ product }: { product: Product }) {
+export function Gallery({ title, images, category }: { title: string; images: string[]; category: string }) {
   const [index, setIndex] = useState(0);
   const [zoom, setZoom] = useState(false);
   const zoomBtn = useRef<HTMLButtonElement>(null);
-  const alt = (i: number) => `${product.title}, ${views[i].toLowerCase()} view`;
+  // No photos yet → one placeholder view.
+  const views = images.length ? images : [null];
+  const alt = (i: number) => (views.length > 1 ? `${title}, photo ${i + 1} of ${views.length}` : title);
 
   function onKey(e: React.KeyboardEvent) {
     if (e.key === "ArrowRight") setIndex((i) => (i + 1) % views.length);
@@ -37,36 +45,40 @@ export function Gallery({ product }: { product: Product }) {
 
   return (
     <div className="flex flex-col-reverse gap-3 lg:flex-row">
-      <div role="tablist" aria-label="Product images" onKeyDown={onKey} className="flex gap-2 lg:flex-col">
-        {views.map((v, i) => (
-          <button
-            key={v}
-            role="tab"
-            type="button"
-            aria-selected={i === index}
-            aria-label={`Show ${v.toLowerCase()} view`}
-            tabIndex={i === index ? 0 : -1}
-            onClick={() => setIndex(i)}
-            className={`w-16 overflow-hidden rounded-control border-2 transition-hb lg:w-20 ${
-              i === index ? "border-ink" : "border-transparent hover:border-control"
-            }`}
-          >
-            <ProductArt kind={product.art} tone={product.tone} angle={i} />
-          </button>
-        ))}
-      </div>
-      <div className="relative flex-1">
-        <div role="tabpanel" aria-label={alt(index)} className="overflow-hidden rounded-card border border-border bg-surface">
-          <ProductArt kind={product.art} tone={product.tone} angle={index} label={alt(index)} />
+      {views.length > 1 && (
+        <div role="tablist" aria-label="Product photos" onKeyDown={onKey} className="flex gap-2 overflow-x-auto lg:flex-col">
+          {views.map((src, i) => (
+            <button
+              key={i}
+              role="tab"
+              type="button"
+              aria-selected={i === index}
+              aria-label={`Show photo ${i + 1}`}
+              tabIndex={i === index ? 0 : -1}
+              onClick={() => setIndex(i)}
+              className={`w-16 shrink-0 overflow-hidden rounded-control border-2 transition-hb lg:w-20 ${
+                i === index ? "border-ink" : "border-transparent hover:border-control"
+              }`}
+            >
+              <ProductImage src={src} category={category} alt="" />
+            </button>
+          ))}
         </div>
-        <button
-          ref={zoomBtn}
-          type="button"
-          onClick={() => setZoom(true)}
-          className="absolute bottom-3 right-3 flex min-h-11 items-center gap-1.5 rounded-full bg-surface/95 px-3 text-sm font-semibold shadow-sm hover:bg-surface"
-        >
-          <ZoomIn aria-hidden className="size-4" /> Zoom
-        </button>
+      )}
+      <div className="relative flex-1">
+        <div role={views.length > 1 ? "tabpanel" : undefined} className="overflow-hidden rounded-card border border-border bg-surface">
+          <ProductImage src={views[index]} category={category} alt={alt(index)} />
+        </div>
+        {views[index] && (
+          <button
+            ref={zoomBtn}
+            type="button"
+            onClick={() => setZoom(true)}
+            className="absolute bottom-3 right-3 flex min-h-11 items-center gap-1.5 rounded-full bg-surface/95 px-3 text-sm font-semibold shadow-sm hover:bg-surface"
+          >
+            <ZoomIn aria-hidden className="size-4" /> Zoom
+          </button>
+        )}
       </div>
       {zoom && (
         <div role="dialog" aria-modal="true" aria-label={`Zoomed: ${alt(index)}`} className="fixed inset-0 z-[80] grid place-items-center bg-ink/90 p-4">
@@ -82,7 +94,7 @@ export function Gallery({ product }: { product: Product }) {
           >
             <X aria-hidden className="size-5" />
           </button>
-          <ProductArt kind={product.art} tone={product.tone} angle={index} className="w-full max-w-[min(90vw,80dvh)] rounded-card" />
+          <ProductImage src={views[index]} category={category} alt={alt(index)} className="w-full max-w-[min(90vw,80dvh)] rounded-card" />
         </div>
       )}
     </div>
@@ -192,7 +204,9 @@ export function QuantityControl({
 
 /* ---------- Purchase panel ---------- */
 
-export function PurchasePanel({ product }: { product: Product }) {
+type PanelProduct = { id: string; title: string; price: number; stock: number; options: ProductOption[] };
+
+export function PurchasePanel({ product }: { product: PanelProduct }) {
   const { add } = useCart();
   const toast = useToast();
   const [selection, setSelection] = useState<Record<string, string>>(() =>
@@ -210,13 +224,10 @@ export function PurchasePanel({ product }: { product: Product }) {
     if (state === "loading") return; // duplicate-submit guard
     setTried(true);
     if (missing.length || blocked || soldOut) return;
-    setState("loading");
-    setTimeout(() => {
-      add(product.slug, selection, qty);
-      setState("added");
-      toast({ tone: "success", message: `Added ${qty} × ${product.title} to your cart.` });
-      setTimeout(() => setState("idle"), 1800);
-    }, 500);
+    add(product.id, selection, qty, product.stock);
+    setState("added");
+    toast({ tone: "success", message: `Added ${qty} × ${product.title} to your cart.` });
+    setTimeout(() => setState("idle"), 1800);
   }
 
   const cta =

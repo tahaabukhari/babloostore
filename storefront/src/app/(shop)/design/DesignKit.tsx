@@ -2,8 +2,7 @@
 
 import { AlertCircle } from "lucide-react";
 import { useState } from "react";
-import { getProduct } from "@/lib/data";
-import { QuantityControl, VariantSelector } from "@/components/pdp";
+import { QuantityControl, VariantSelector, type ProductOption } from "@/components/pdp";
 import { useToast } from "@/components/Toast";
 import { Button } from "@/components/ui";
 
@@ -43,11 +42,17 @@ export function LoadingButtonDemo() {
 }
 
 export function VariantDemo() {
-  const kurta = getProduct("cotton-kurta-men")!;
+  const options: ProductOption[] = [
+    { name: "Colour", values: [{ label: "White", swatch: "#F4F4F0", available: true }, { label: "Navy", swatch: "#2A3550", available: true }] },
+    {
+      name: "Size",
+      values: ["S", "M", "L", "XL"].map((s) => ({ label: s, available: s !== "XL", reason: s === "XL" ? "Sold out at this store" : undefined })),
+    },
+  ];
   const [sel, setSel] = useState<Record<string, string>>({ Colour: "Navy" });
   return (
     <div className="space-y-5">
-      {kurta.options.map((o) => (
+      {options.map((o) => (
         <VariantSelector key={o.name} option={o} value={sel[o.name]} onChange={(v) => setSel((s) => ({ ...s, [o.name]: v }))} showError />
       ))}
     </div>

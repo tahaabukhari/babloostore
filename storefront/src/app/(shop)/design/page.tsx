@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { getProduct, getStore } from "@/lib/data";
+import type { CardProduct } from "@/lib/data";
 import { ProductCard } from "@/components/ProductCard";
-import { Button, Price, Rating, StatusLabel, StockLine, TrustBadge, type OrderStatus } from "@/components/ui";
+import { Button, Price, StatusLabel, StockLine, TrustBadge, type OrderStatus } from "@/components/ui";
 import { FormFieldDemo, LoadingButtonDemo, QuantityDemo, ToastDemo, VariantDemo } from "./DesignKit";
 
 export const metadata: Metadata = { title: "Design review kit" };
@@ -48,8 +48,15 @@ function Block({ title, note, children }: { title: string; note?: string; childr
 }
 
 export default function DesignKitPage() {
-  const statuses: OrderStatus[] = ["pending", "paid", "shipped", "delivered", "refunded", "rejected"];
-  const cards = ["printed-lawn-3pc-suit", "matte-lip-set", "sunglasses-uv400", "accent-armchair"].map((s) => getProduct(s)!);
+  const statuses: OrderStatus[] = ["new", "confirmed", "shipped", "delivered", "cancelled"];
+  // Component samples only — not real listings.
+  const sample = { storeName: "Sample Store", storeSlug: "sample", storeCity: "Lahore", image: null, compareAt: null };
+  const cards: CardProduct[] = [
+    { ...sample, id: "s1", slug: "#", title: "Printed lawn 3-piece unstitched suit with chiffon dupatta", category: "fashion", price: 4490, compareAt: 5990, stock: 12 },
+    { ...sample, id: "s2", slug: "#", title: "Matte lip colour set", category: "beauty", price: 1850, stock: 0 },
+    { ...sample, id: "s3", slug: "#", title: "Polarised UV400 sunglasses", category: "jewellery", price: 1690, stock: 25 },
+    { ...sample, id: "s4", slug: "#", title: "Accent armchair with sheesham legs", category: "home", price: 32500, stock: 1 },
+  ];
 
   return (
     <div className="container-hb space-y-6 py-6">
@@ -105,7 +112,7 @@ export default function DesignKitPage() {
         </div>
       </Block>
 
-      <Block title="Product cards" note="Default · sold out · no reviews · high price. Wishlist is a separate control; title link covers the card.">
+      <Block title="Product cards" note="Reduced price · sold out · no photo (category placeholder) · high price. Wishlist is a separate control; title link covers the card.">
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:gap-5">
           {cards.map((p) => (
             <li key={p.slug}>
@@ -132,10 +139,10 @@ export default function DesignKitPage() {
             ))}
           </div>
         </Block>
-        <Block title="Trust, stock, price, rating">
+        <Block title="Trust, stock, price">
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
-              <TrustBadge verified explanation={getStore("noor-textiles").verification} />
+              <TrustBadge verified explanation="Store details checked by BablooStore" />
               <TrustBadge verified={false} explanation="Verification in progress" />
             </div>
             <div className="flex flex-wrap gap-4">
@@ -144,10 +151,6 @@ export default function DesignKitPage() {
               <StockLine stock={0} />
             </div>
             <Price price={2490} compareAt={2990} />
-            <div className="flex gap-4">
-              <Rating value={4.6} count={128} />
-              <Rating />
-            </div>
           </div>
         </Block>
       </div>
@@ -166,9 +169,8 @@ export default function DesignKitPage() {
           {[
             "Home at 1440, 1024, 768, 390 and 320 px — no horizontal scroll",
             "Search with long names and empty results — try “zzz”",
-            "Sold-out variant — Kurta size XL, Lawn suit Ivory",
-            "Two-seller cart — seeded on first visit (3 stores)",
-            "Stock conflict in cart — brass lamp qty 3 vs 2 available",
+            "Two-seller cart — add products from two stores",
+            "Stock conflict — lower a product's stock in the dashboard after adding it to the cart",
             "Keyboard: search suggestions, gallery arrows, drawers trap focus and Esc closes",
             "Mobile filters apply explicitly; focus returns to the Filters button",
             "Load more keeps count in URL (?shown=) for back navigation",
