@@ -1,6 +1,6 @@
 # BablooStore storefront
 
-Rebranded from HomeBEZ (the brand used in the blueprint docs). Logo images in `public/brand` still show HomeBEZ until new ones are supplied.
+Logo: `public/brand/*` and `src/app/icon.png` are cut from `../design/assets/homebez-logo-v2.webp` (cart + house mark, HomeBEZ wordmark).
 
 Next.js 15 (App Router) + Tailwind v4 marketplace on the v1 tokens in [`../design/tokens.css`](../design/tokens.css). Data lives in Postgres (Neon in production) through Drizzle ORM.
 

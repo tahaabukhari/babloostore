@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, ChevronRight, Heart, Home, LayoutGrid, MapPin, Menu, ShoppingCart, Store, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Heart, Home, LayoutGrid, MapPin, Menu, ShoppingCart, X } from "lucide-react";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { categories, deliveryCities } from "@/lib/data";
 import { useCart } from "@/lib/cart";
@@ -133,27 +133,13 @@ function CategoryDrawer({ open, onClose }: { open: boolean; onClose: () => void 
               </li>
             ))}
           </ul>
-          <ul className="p-4 text-sm">
-            {[
-              { label: "Open your store", href: "/signup" },
-              { label: "Store owner sign in", href: "/dashboard" },
-            ].map((l) => (
-              <li key={l.label}>
-                <Link href={l.href} onClick={onClose} className="flex min-h-11 items-center text-ink-secondary hover:text-ink">
-                  {l.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
         </nav>
       </div>
     </div>
   );
 }
 
-export type HeaderUser = { name: string; isOwner: boolean } | null;
-
-export function Header({ user }: { user: HeaderUser }) {
+export function Header() {
   const [drawer, setDrawer] = useState(false);
   const pathname = usePathname();
 
@@ -163,20 +149,6 @@ export function Header({ user }: { user: HeaderUser }) {
       <div className="hidden bg-surface-muted text-xs text-ink-secondary sm:block">
         <div className="container-hb flex h-8 items-center justify-between">
           <p>Cash on delivery · Each store ships its own items</p>
-          <ul className="flex items-center gap-4">
-            {!user?.isOwner && (
-              <li>
-                <Link href="/signup" className="hover:text-ink hover:underline">
-                  Open your store
-                </Link>
-              </li>
-            )}
-            <li>
-              <Link href="/dashboard" className="hover:text-ink hover:underline">
-                {user?.isOwner ? "Store dashboard" : "Store owner sign in"}
-              </Link>
-            </li>
-          </ul>
         </div>
       </div>
 
@@ -200,18 +172,6 @@ export function Header({ user }: { user: HeaderUser }) {
             </Suspense>
           </div>
           <div className="ml-auto flex items-center gap-1 sm:ml-0">
-            <Link
-              href={user?.isOwner ? "/dashboard" : "/signup"}
-              className="hidden min-h-11 items-center gap-2 rounded-control px-2 hover:bg-white/10 lg:flex"
-            >
-              <Store aria-hidden className="size-6" />
-              <span className="flex flex-col text-left leading-tight">
-                <span className="max-w-32 truncate text-[11px] text-white/70">
-                  {user?.isOwner ? `Hello, ${user.name.split(" ")[0]}` : "Sell on BablooStore"}
-                </span>
-                <span className="text-sm font-semibold">{user?.isOwner ? "Your store" : "Open a store"}</span>
-              </span>
-            </Link>
             <a
               href="#"
               aria-label="Wishlist"
@@ -259,27 +219,20 @@ export function Header({ user }: { user: HeaderUser }) {
               More
             </Link>
           </li>
-          <li className="ml-auto hidden xl:block">
-            <Link href="/design" className="flex min-h-10 items-center rounded-control px-3 text-gold-ink hover:underline">
-              Design review kit
-            </Link>
-          </li>
         </ul>
       </nav>
 
       <CategoryDrawer open={drawer} onClose={() => setDrawer(false)} />
-      <MobileBottomNav pathname={pathname} isOwner={!!user?.isOwner} onCategories={() => setDrawer(true)} />
+      <MobileBottomNav pathname={pathname} onCategories={() => setDrawer(true)} />
     </>
   );
 }
 
 function MobileBottomNav({
   pathname,
-  isOwner,
   onCategories,
 }: {
   pathname: string;
-  isOwner: boolean;
   onCategories: () => void;
 }) {
   const { count, ready } = useCart();
@@ -301,9 +254,6 @@ function MobileBottomNav({
       <Link href="/cart" className={`${item} ${on("/cart")} relative`} aria-current={pathname === "/cart" ? "page" : undefined}>
         <ShoppingCart aria-hidden className="size-5" />
         Cart{ready && count > 0 ? ` (${count})` : ""}
-      </Link>
-      <Link href={isOwner ? "/dashboard" : "/signup"} className={`${item} ${on("/signup")}`}>
-        <Store aria-hidden className="size-5" /> {isOwner ? "My store" : "Sell"}
       </Link>
     </nav>
   );

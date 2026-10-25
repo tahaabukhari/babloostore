@@ -11,7 +11,7 @@ export function Logo({ compact = false }: { compact?: boolean }) {
         <Image
           src="/brand/homebez-wordmark.png"
           alt=""
-          width={568}
+          width={587}
           height={96}
           priority
           className="h-5 w-auto lg:h-6"
