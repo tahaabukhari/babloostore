@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, sql } from "drizzle-orm";
+import { and, eq, gt, gte, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { orderItems, orders, products, stores } from "@/db/schema";
 import { deliveryFee } from "./delivery";
@@ -36,7 +36,7 @@ export async function createOrders(checkoutId: string, c: CheckoutContact, lines
       .select({ product: products, store: stores })
       .from(products)
       .innerJoin(stores, eq(stores.id, products.storeId))
-      .where(and(inArray(products.id, ids), eq(products.status, "active"), eq(stores.isOpen, true)));
+      .where(and(inArray(products.id, ids), eq(products.status, "active"), eq(stores.isOpen, true), gt(products.price, 0)));
     const byId = new Map(rows.map((r) => [r.product.id, r]));
 
     const missing = ids.filter((id) => !byId.has(id));

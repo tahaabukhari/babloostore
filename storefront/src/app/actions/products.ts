@@ -3,7 +3,6 @@
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { z } from "zod";
 import { db } from "@/db";
 import { products, type ProductOptionRow } from "@/db/schema";
 import { requireOwnerStore } from "@/lib/auth";
@@ -11,88 +10,81 @@ import { categories } from "@/lib/data";
 import { uniqueSlug } from "@/lib/slug";
 import { echo, type FormState } from "@/lib/formState";
 
-const lines = (v: unknown) =>
+// Lenient on purpose (owner request, Oct 2026): a product always saves, whatever
+// is filled in. Missing or invalid values fall back to safe defaults, and the
+// products list flags what still needs filling. Price 0 can't be bought.
+
+const text = (v: FormDataEntryValue | null, max: number) => String(v ?? "").trim().slice(0, max);
+
+const lines = (v: FormDataEntryValue | null) =>
   String(v ?? "")
     .split(/\r?\n/)
     .map((s) => s.trim())
     .filter(Boolean);
 
-const productSchema = z
-  .object({
-    title: z.string().trim().min(3, "Use at least 3 characters.").max(140),
-    category: z.enum(categories.map((c) => c.slug) as [string, ...string[]], "Choose a category."),
-    description: z.string().trim().max(5000).default(""),
-    highlights: z.preprocess(lines, z.array(z.string().max(160)).max(10, "Up to 10 highlights.")),
-    price: z.coerce.number("Enter a price.").int("Whole rupees only.").min(1, "Price must be at least Rs. 1.").max(10_000_000),
-    compareAt: z.preprocess(
-      (v) => (v === "" || v == null ? undefined : Number(v)),
-      z.number().int("Whole rupees only.").min(1).max(10_000_000).optional(),
-    ),
-    stock: z.coerce.number().int("Whole numbers only.").min(0).max(100_000),
-    images: z.preprocess(
-      lines,
-      z
-        .array(
-          z.union([
-            z.string().regex(/^\/media\/[\w/.-]+$/), // uploaded to our storage
-            z.url({ protocol: /^https?$/, error: "Each image link must start with https://" }),
-          ]),
-        )
-        .max(6, "Up to 6 images."),
-    ),
-    warranty: z.string().trim().max(200).optional(),
-    intent: z.enum(["draft", "active"]).default("draft"),
-  })
-  .refine((d) => d.compareAt === undefined || d.compareAt > d.price, {
-    path: ["compareAt"],
-    message: "Compare-at price must be higher than the price, or leave it empty.",
-  });
+/** Whole number in range, or the fallback when blank / not a number. Accepts "2,500" and "Rs. 2500". */
+function int(v: FormDataEntryValue | null, fallback: number, max: number) {
+  const n = Math.round(Number(String(v ?? "").replace(/[^\d.]/g, "")));
+  return String(v ?? "").trim() === "" || !Number.isFinite(n) ? fallback : Math.min(Math.max(n, 0), max);
+}
 
-function parseOptions(form: FormData): { options: ProductOptionRow[]; error?: string } {
+const isImage = (s: string) => /^\/media\/[\w/.-]+$/.test(s) || /^https?:\/\/\S+$/.test(s);
+const categorySlugs = new Set<string>(categories.map((c) => c.slug));
+
+function parseOptions(form: FormData): ProductOptionRow[] {
   const options: ProductOptionRow[] = [];
   for (const i of [1, 2]) {
-    const name = String(form.get(`option${i}Name`) ?? "").trim();
+    const name = text(form.get(`option${i}Name`), 40);
     const values = [
       ...new Set(
         String(form.get(`option${i}Values`) ?? "")
           .split(",")
-          .map((s) => s.trim())
+          .map((s) => s.trim().slice(0, 40))
           .filter(Boolean),
       ),
-    ];
-    if (!name && !values.length) continue;
-    if (!name || !values.length) return { options, error: `Option ${i} needs a name and at least one value.` };
-    if (values.length > 20) return { options, error: `Option ${i} can have up to 20 values.` };
-    options.push({ name, values: values.map((v) => v.slice(0, 40)) });
+    ].slice(0, 20);
+    // An option without a name or without values is ignored rather than blocking the save.
+    if (name && values.length) options.push({ name, values });
   }
-  return { options };
+  return options;
 }
 
 export async function saveProduct(_: FormState, form: FormData): Promise<FormState> {
   const { store } = await requireOwnerStore();
-  const raw = Object.fromEntries(form);
-  const parsed = productSchema.safeParse(raw);
-  const { options, error: optionError } = parseOptions(form);
-  if (!parsed.success || optionError) {
-    const fieldErrors = parsed.success
-      ? {}
-      : Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message]));
-    if (optionError) fieldErrors.options = optionError;
-    return { error: "Check the highlighted fields.", fieldErrors, values: echo(form) };
-  }
-  const { intent, warranty, compareAt, ...rest } = parsed.data;
-  const values = { ...rest, warranty: warranty || null, compareAt: compareAt ?? null, options, status: intent };
+  const price = int(form.get("price"), 0, 10_000_000);
+  const compareAt = int(form.get("compareAt"), 0, 10_000_000);
+  const category = text(form.get("category"), 40);
+  const intent = form.get("intent") === "active" ? "active" : "draft";
+
+  const values = {
+    title: text(form.get("title"), 140) || "Untitled product",
+    category: categorySlugs.has(category) ? category : "other",
+    description: text(form.get("description"), 5000),
+    highlights: lines(form.get("highlights")).map((h) => h.slice(0, 160)).slice(0, 10),
+    price,
+    compareAt: compareAt > price && price > 0 ? compareAt : null,
+    stock: int(form.get("stock"), 1, 100_000),
+    images: lines(form.get("images")).filter(isImage).slice(0, 6),
+    warranty: text(form.get("warranty"), 200) || null,
+    options: parseOptions(form),
+    status: intent as "active" | "draft",
+  };
   const id = String(form.get("id") ?? "");
 
-  if (id) {
-    const [updated] = await db
-      .update(products)
-      .set(values)
-      .where(and(eq(products.id, id), eq(products.storeId, store.id)))
-      .returning({ slug: products.slug });
-    if (!updated) return { error: "That product no longer exists.", values: echo(form) };
-  } else {
-    await db.insert(products).values({ ...values, storeId: store.id, slug: uniqueSlug(values.title) });
+  try {
+    if (id) {
+      const [updated] = await db
+        .update(products)
+        .set(values)
+        .where(and(eq(products.id, id), eq(products.storeId, store.id)))
+        .returning({ slug: products.slug });
+      if (!updated) return { error: "That product no longer exists.", values: echo(form) };
+    } else {
+      await db.insert(products).values({ ...values, storeId: store.id, slug: uniqueSlug(values.title) });
+    }
+  } catch (e) {
+    console.error("saveProduct failed", e);
+    return { error: "Couldn't save the product. Check your connection and try again.", values: echo(form) };
   }
   revalidatePath("/", "layout");
   redirect(`/dashboard/products?saved=${intent === "active" ? "published" : "draft"}`);

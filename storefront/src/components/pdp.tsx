@@ -220,6 +220,7 @@ export function PurchasePanel({ product: raw }: { product: PanelProduct }) {
   const [state, setState] = useState<"idle" | "loading" | "added">("idle");
 
   const soldOut = product.stock === 0;
+  const noPrice = product.price <= 0;
   const missing = product.options.filter((o) => !selection[o.name]);
   const blocked = product.options.some((o) => o.values.find((v) => v.label === selection[o.name] && !v.available));
 
@@ -234,7 +235,7 @@ export function PurchasePanel({ product: raw }: { product: PanelProduct }) {
       toast({ tone: "info", message: `Choose your ${missing.map((m) => m.name.toLowerCase()).join(" and ")} first.` });
       return;
     }
-    if (blocked || soldOut) return;
+    if (blocked || soldOut || noPrice) return;
     add(product.id, selection, qty, product.stock);
     setState("added");
     toast({ tone: "success", message: `Added ${qty} × ${product.title} to your cart.` });
@@ -246,6 +247,8 @@ export function PurchasePanel({ product: raw }: { product: PanelProduct }) {
       <>
         <Check aria-hidden className="size-5" /> Added
       </>
+    ) : noPrice ? (
+      "Not for sale yet"
     ) : soldOut ? (
       "Sold out"
     ) : (
@@ -272,7 +275,7 @@ export function PurchasePanel({ product: raw }: { product: PanelProduct }) {
       </div>
 
       <div className="hidden gap-3 sm:flex">
-        <Button size="lg" className="flex-1" onClick={addToCart} loading={state === "loading"} disabled={soldOut}>
+        <Button size="lg" className="flex-1" onClick={addToCart} loading={state === "loading"} disabled={soldOut || noPrice}>
           {cta}
         </Button>
         <Link
@@ -286,12 +289,12 @@ export function PurchasePanel({ product: raw }: { product: PanelProduct }) {
       {/* Mobile sticky purchase bar; layout reserves its height via pb on the page. */}
       <div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-border bg-surface p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:hidden">
         <div className="min-w-0">
-          <p className="tabular text-[18px] font-bold leading-6">{formatPrice(product.price * qty)}</p>
+          <p className="tabular text-[18px] font-bold leading-6">{noPrice ? "Price not set" : formatPrice(product.price * qty)}</p>
           <p className="truncate text-xs text-ink-secondary">
             {missing.length ? `Choose ${missing.map((m) => m.name.toLowerCase()).join(" and ")}` : `Qty ${qty}`}
           </p>
         </div>
-        <Button className="ml-auto flex-1" size="lg" onClick={addToCart} loading={state === "loading"} disabled={soldOut}>
+        <Button className="ml-auto flex-1" size="lg" onClick={addToCart} loading={state === "loading"} disabled={soldOut || noPrice}>
           {cta}
         </Button>
       </div>

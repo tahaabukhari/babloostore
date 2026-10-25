@@ -1,7 +1,7 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, gt, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
@@ -39,7 +39,7 @@ export async function getCartProducts(ids: string[]): Promise<CartProductInfo[]>
     .select({ product: products, store: stores })
     .from(products)
     .innerJoin(stores, eq(stores.id, products.storeId))
-    .where(and(inArray(products.id, valid), eq(products.status, "active"), eq(stores.isOpen, true)));
+    .where(and(inArray(products.id, valid), eq(products.status, "active"), eq(stores.isOpen, true), gt(products.price, 0)));
   return rows.map(({ product: p, store: s }) => ({
     id: p.id,
     slug: p.slug,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { deleteProduct, saveProduct, setProductStatus } from "@/app/actions/products";
 import { Field, FormAlert, Select, SubmitButton, TextArea } from "@/components/form";
 import { Button } from "@/components/ui";
@@ -13,18 +13,25 @@ export function ProductForm({ product, uploadsEnabled }: { product?: Product; up
   const fe = state?.fieldErrors ?? {};
   const [category, setCategory] = useState(product?.category ?? "");
   const [pending, start] = useTransition();
+  const alertRef = useRef<HTMLDivElement>(null);
+  // The save buttons sit at the bottom on phones; bring any error into view.
+  useEffect(() => {
+    if (state?.error) alertRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [state]);
   const opt = (i: number) => product?.options[i];
   const v = (k: string, fallback?: string | number | null) => state?.values?.[k] ?? (fallback == null ? "" : String(fallback));
 
   return (
     <form action={action} className="grid gap-5 lg:grid-cols-[1fr_320px]" noValidate>
       <div className="space-y-5">
-        <FormAlert state={state} />
+        <div ref={alertRef} className="scroll-mt-24">
+          <FormAlert state={state} />
+        </div>
         {product && <input type="hidden" name="id" value={product.id} />}
 
         <section className="space-y-4 rounded-card border border-border bg-surface p-4 lg:p-5">
           <h2 className="text-base font-bold">Details</h2>
-          <Field name="title" label="Title" defaultValue={v("title", product?.title)} error={fe.title} maxLength={140} help="What it is, plus the detail shoppers search for — e.g. “Printed lawn 3-piece suit, unstitched”." required />
+          <Field name="title" label="Title" defaultValue={v("title", product?.title)} error={fe.title} maxLength={140} help="What it is, plus the detail shoppers search for — e.g. “Printed lawn 3-piece suit, unstitched”." />
           <Select
             name="category"
             label="Category"
@@ -41,9 +48,9 @@ export function ProductForm({ product, uploadsEnabled }: { product?: Product; up
         <section className="space-y-4 rounded-card border border-border bg-surface p-4 lg:p-5">
           <h2 className="text-base font-bold">Price and stock</h2>
           <div className="grid gap-4 sm:grid-cols-3">
-            <Field name="price" label="Price (Rs.)" inputMode="numeric" defaultValue={v("price", product?.price)} error={fe.price} required />
+            <Field name="price" label="Price (Rs.)" inputMode="numeric" defaultValue={v("price", product?.price || "")} error={fe.price} help="Shoppers can't buy it until it has a price." />
             <Field name="compareAt" label="Compare-at (Rs.)" inputMode="numeric" defaultValue={v("compareAt", product?.compareAt)} error={fe.compareAt} help="Only if you really sold it at this price before." />
-            <Field name="stock" label="Stock" inputMode="numeric" defaultValue={v("stock", product?.stock ?? 0)} error={fe.stock} required />
+            <Field name="stock" label="Stock" inputMode="numeric" defaultValue={v("stock", product?.stock ?? 1)} error={fe.stock} />
           </div>
         </section>
 

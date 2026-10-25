@@ -14,6 +14,17 @@ const statusStyle = {
   archived: "bg-danger-soft text-danger",
 } as const;
 const statusText = { active: "Live", draft: "Draft", archived: "Archived" } as const;
+// Products save with whatever was filled in; remind the owner what's left.
+function missingInfo(p: { price: number; category: string; images: string[]; stock: number; description: string }) {
+  const out: string[] = [];
+  if (p.price <= 0) out.push("price");
+  if (!getCategory(p.category)) out.push("category");
+  if (!p.images.length) out.push("photos");
+  if (!p.description) out.push("description");
+  if (p.stock <= 0) out.push("stock");
+  return out;
+}
+
 const savedText: Record<string, string> = {
   published: "Product saved and live in your store.",
   draft: "Product saved as a draft — only you can see it.",
@@ -57,7 +68,10 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
                 <ProductImage src={p.images[0]} category={p.category} alt="" className="rounded-control" />
                 <span className="min-w-0">
                   <span className="line-clamp-1 text-sm font-medium">{p.title}</span>
-                  <span className="block text-xs text-ink-secondary">{getCategory(p.category)?.name}</span>
+                  <span className="block text-xs text-ink-secondary">{getCategory(p.category)?.name ?? "No category"}</span>
+                  {missingInfo(p).length > 0 && (
+                    <span className="mt-1 block text-xs font-medium text-gold-ink">Needs: {missingInfo(p).join(", ")}</span>
+                  )}
                 </span>
                 <span className="tabular hidden text-right text-sm font-semibold sm:block">{formatPrice(p.price)}</span>
                 <span className={`tabular hidden text-right text-sm sm:block ${p.stock === 0 ? "font-semibold text-danger" : ""}`}>

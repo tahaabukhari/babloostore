@@ -183,6 +183,8 @@ export function Price({
       : size === "card"
         ? "text-[18px] leading-6 lg:text-[20px] lg:leading-7"
         : "text-base";
+  // Products can be saved without a price; they show but can't be bought.
+  if (price <= 0) return <p className="text-sm font-semibold text-ink-secondary">Price not set yet</p>;
   return (
     <div className="tabular flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
       <span className={`font-bold text-ink ${main}`}>{formatPrice(price)}</span>
