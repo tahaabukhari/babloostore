@@ -6,7 +6,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
 import { products, stores } from "@/db/schema";
-import { getCurrentUser } from "@/lib/auth";
 import { CheckoutError, createOrders } from "@/lib/checkout";
 
 export type CartProductInfo = {
@@ -103,11 +102,10 @@ export async function placeOrder(contactInput: unknown, linesInput: unknown): Pr
   const lines = linesSchema.safeParse(linesInput);
   if (!lines.success) return { ok: false, error: lines.error.issues[0]?.message ?? "Your cart couldn't be read." };
 
-  const user = await getCurrentUser();
   const checkoutId = randomUUID();
 
   try {
-    await createOrders(checkoutId, contact.data, lines.data, user?.id ?? null);
+    await createOrders(checkoutId, contact.data, lines.data, null);
   } catch (e) {
     if (e instanceof CheckoutError) return { ok: false, error: e.message, staleIds: e.staleIds };
     console.error("placeOrder failed", e);

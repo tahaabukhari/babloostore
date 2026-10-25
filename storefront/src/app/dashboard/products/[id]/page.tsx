@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, ExternalLink } from "lucide-react";
 import { requireOwnerStore } from "@/lib/auth";
+import { isStorageConfigured } from "@/lib/storage";
 import { getOwnerProduct } from "@/lib/owner";
 import { ProductForm } from "../ProductForm";
 
@@ -23,7 +24,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           </Link>
         )}
       </div>
-      <ProductForm key={product.updatedAt.toISOString()} product={product} />
+      <ProductForm key={product.updatedAt.toISOString()} product={product} uploadsEnabled={isStorageConfigured()} />
     </div>
   );
 }

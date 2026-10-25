@@ -4,15 +4,17 @@ import { StoreForm } from "./StoreForm";
 
 export const metadata: Metadata = { title: "Store settings" };
 
-export default async function StoreSettingsPage() {
+export default async function StoreSettingsPage({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
   const { store } = await requireOwner("/dashboard/store");
+  const { welcome } = await searchParams;
   return (
     <div className="space-y-4">
       <div>
         <h1 className="text-[26px] font-bold leading-[34px]">{store ? "Store settings" : "Set up your store"}</h1>
-        {!store && (
+        {(welcome || !store) && (
           <p className="mt-1 max-w-2xl text-sm text-ink-secondary">
-            Tell shoppers who you are and how you deliver. You can change all of this later.
+            {welcome ? "Welcome! Your store is created. " : ""}Check your delivery fee, dispatch time and return policy — shoppers see
+            these on every product. Then add your first product.
           </p>
         )}
       </div>

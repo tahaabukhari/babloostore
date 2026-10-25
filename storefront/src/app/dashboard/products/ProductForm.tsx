@@ -3,21 +3,16 @@
 import { useActionState, useState, useTransition } from "react";
 import { deleteProduct, saveProduct, setProductStatus } from "@/app/actions/products";
 import { Field, FormAlert, Select, SubmitButton, TextArea } from "@/components/form";
-import { Button, ProductImage } from "@/components/ui";
+import { Button } from "@/components/ui";
 import type { Product } from "@/db/schema";
 import { categories, optionNames } from "@/lib/data";
+import { ImageManager } from "./ImageManager";
 
-export function ProductForm({ product }: { product?: Product }) {
+export function ProductForm({ product, uploadsEnabled }: { product?: Product; uploadsEnabled: boolean }) {
   const [state, action] = useActionState(saveProduct, undefined);
   const fe = state?.fieldErrors ?? {};
-  const [images, setImages] = useState((product?.images ?? []).join("\n"));
   const [category, setCategory] = useState(product?.category ?? "");
   const [pending, start] = useTransition();
-  const preview = images
-    .split(/\r?\n/)
-    .map((s) => s.trim())
-    .filter((s) => /^https?:\/\//.test(s))
-    .slice(0, 6);
   const opt = (i: number) => product?.options[i];
   const v = (k: string, fallback?: string | number | null) => state?.values?.[k] ?? (fallback == null ? "" : String(fallback));
 
@@ -75,25 +70,8 @@ export function ProductForm({ product }: { product?: Product }) {
           )}
         </section>
 
-        <section className="space-y-4 rounded-card border border-border bg-surface p-4 lg:p-5">
-          <TextArea
-            name="images"
-            label="Photo links"
-            value={images}
-            onChange={(e) => setImages(e.target.value)}
-            error={fe.images}
-            rows={3}
-            help="One image link per line (https://…), up to 6. The first is the main photo. Direct uploads come later."
-          />
-          {preview.length > 0 && (
-            <ul className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-              {preview.map((src, i) => (
-                <li key={src + i}>
-                  <ProductImage src={src} category={category} alt={`Preview ${i + 1}`} className="rounded-control border border-border" />
-                </li>
-              ))}
-            </ul>
-          )}
+        <section className="rounded-card border border-border bg-surface p-4 lg:p-5">
+          <ImageManager initial={product?.images ?? []} category={category} error={fe.images} uploadsEnabled={uploadsEnabled} />
         </section>
       </div>
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { requireOwnerStore } from "@/lib/auth";
+import { isStorageConfigured } from "@/lib/storage";
 import { ProductForm } from "../ProductForm";
 
 export const metadata: Metadata = { title: "New product" };
@@ -20,7 +21,7 @@ export default async function NewProductPage({ searchParams }: { searchParams: P
           Your store is set up. Add your first product — it appears in the shop as soon as you publish it.
         </p>
       )}
-      <ProductForm />
+      <ProductForm uploadsEnabled={isStorageConfigured()} />
     </div>
   );
 }

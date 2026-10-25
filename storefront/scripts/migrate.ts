@@ -6,6 +6,11 @@ import { db, isLocalDb } from "../src/db";
 
 async function main() {
   const migrationsFolder = "./drizzle";
+  if (isLocalDb() && process.env.VERCEL) {
+    throw new Error(
+      "DATABASE_URL is not set for this Vercel deployment. Add the Neon pooled connection string in Vercel > Settings > Environment Variables.",
+    );
+  }
   if (isLocalDb()) {
     console.log("Applying migrations to local PGlite database (./.data/pglite)…");
     await migratePglite(db as unknown as PgliteDatabase, { migrationsFolder });

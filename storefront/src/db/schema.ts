@@ -154,6 +154,15 @@ export const orderItems = pgTable(
   (t) => [index("order_items_order_idx").on(t.orderId)],
 );
 
+// Invite codes themselves live in the INVITE_CODES env var; this records which were used.
+export const inviteRedemptions = pgTable("invite_redemptions", {
+  code: text("code").primaryKey(), // upper-cased; primary key makes each code single-use
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  redeemedAt: timestamp("redeemed_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type Store = typeof stores.$inferSelect;
 export type Product = typeof products.$inferSelect;

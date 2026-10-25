@@ -46,7 +46,7 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   return row ?? null;
 });
 
-export async function requireUser(next = "/account") {
+export async function requireUser(next = "/dashboard") {
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=${encodeURIComponent(next)}`);
   return user;
@@ -55,7 +55,7 @@ export async function requireUser(next = "/account") {
 /** Signed-in store owner plus their store (null until they set it up). */
 export async function requireOwner(next = "/dashboard") {
   const user = await requireUser(next);
-  if (user.role !== "owner" && user.role !== "admin") redirect("/account?denied=1");
+  if (user.role !== "owner" && user.role !== "admin") redirect("/login?denied=1");
   const [store] = await db.select().from(stores).where(eq(stores.ownerId, user.id)).limit(1);
   return { user, store: store ?? null };
 }

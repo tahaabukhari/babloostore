@@ -1,4 +1,4 @@
-import { desc, eq, inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { orderItems, orders, stores } from "@/db/schema";
 
@@ -16,22 +16,4 @@ export async function getCheckout(checkoutId: string) {
     .from(orderItems)
     .where(inArray(orderItems.orderId, rows.map((r) => r.order.id)));
   return rows.map((r) => ({ ...r, items: items.filter((i) => i.orderId === r.order.id) }));
-}
-
-export async function listUserOrders(userId: string) {
-  return db
-    .select({
-      id: orders.id,
-      orderNo: orders.orderNo,
-      checkoutId: orders.checkoutId,
-      status: orders.status,
-      total: orders.total,
-      createdAt: orders.createdAt,
-      storeName: stores.name,
-    })
-    .from(orders)
-    .innerJoin(stores, eq(stores.id, orders.storeId))
-    .where(eq(orders.userId, userId))
-    .orderBy(desc(orders.createdAt))
-    .limit(50);
 }

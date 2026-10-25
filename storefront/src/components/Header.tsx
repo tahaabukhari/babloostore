@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, ChevronRight, Heart, Home, LayoutGrid, MapPin, Menu, ShoppingCart, User, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Heart, Home, LayoutGrid, MapPin, Menu, ShoppingCart, Store, X } from "lucide-react";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { categories, deliveryCities } from "@/lib/data";
 import { useCart } from "@/lib/cart";
@@ -135,8 +135,8 @@ function CategoryDrawer({ open, onClose }: { open: boolean; onClose: () => void 
           </ul>
           <ul className="p-4 text-sm">
             {[
-              { label: "My orders", href: "/account" },
-              { label: "Store owner dashboard", href: "/dashboard" },
+              { label: "Open your store", href: "/signup" },
+              { label: "Store owner sign in", href: "/dashboard" },
             ].map((l) => (
               <li key={l.label}>
                 <Link href={l.href} onClick={onClose} className="flex min-h-11 items-center text-ink-secondary hover:text-ink">
@@ -164,14 +164,16 @@ export function Header({ user }: { user: HeaderUser }) {
         <div className="container-hb flex h-8 items-center justify-between">
           <p>Cash on delivery · Each store ships its own items</p>
           <ul className="flex items-center gap-4">
-            <li>
-              <Link href="/account" className="hover:text-ink hover:underline">
-                My orders
-              </Link>
-            </li>
+            {!user?.isOwner && (
+              <li>
+                <Link href="/signup" className="hover:text-ink hover:underline">
+                  Open your store
+                </Link>
+              </li>
+            )}
             <li>
               <Link href="/dashboard" className="hover:text-ink hover:underline">
-                {user?.isOwner ? "Store dashboard" : "Store owner sign-in"}
+                {user?.isOwner ? "Store dashboard" : "Store owner sign in"}
               </Link>
             </li>
           </ul>
@@ -199,15 +201,15 @@ export function Header({ user }: { user: HeaderUser }) {
           </div>
           <div className="ml-auto flex items-center gap-1 sm:ml-0">
             <Link
-              href={user ? "/account" : "/login"}
+              href={user?.isOwner ? "/dashboard" : "/signup"}
               className="hidden min-h-11 items-center gap-2 rounded-control px-2 hover:bg-white/10 lg:flex"
             >
-              <User aria-hidden className="size-6" />
+              <Store aria-hidden className="size-6" />
               <span className="flex flex-col text-left leading-tight">
                 <span className="max-w-32 truncate text-[11px] text-white/70">
-                  {user ? `Hello, ${user.name.split(" ")[0]}` : "Hello, sign in"}
+                  {user?.isOwner ? `Hello, ${user.name.split(" ")[0]}` : "Sell on BablooStore"}
                 </span>
-                <span className="text-sm font-semibold">Account</span>
+                <span className="text-sm font-semibold">{user?.isOwner ? "Your store" : "Open a store"}</span>
               </span>
             </Link>
             <a
@@ -266,18 +268,18 @@ export function Header({ user }: { user: HeaderUser }) {
       </nav>
 
       <CategoryDrawer open={drawer} onClose={() => setDrawer(false)} />
-      <MobileBottomNav pathname={pathname} signedIn={!!user} onCategories={() => setDrawer(true)} />
+      <MobileBottomNav pathname={pathname} isOwner={!!user?.isOwner} onCategories={() => setDrawer(true)} />
     </>
   );
 }
 
 function MobileBottomNav({
   pathname,
-  signedIn,
+  isOwner,
   onCategories,
 }: {
   pathname: string;
-  signedIn: boolean;
+  isOwner: boolean;
   onCategories: () => void;
 }) {
   const { count, ready } = useCart();
@@ -300,8 +302,8 @@ function MobileBottomNav({
         <ShoppingCart aria-hidden className="size-5" />
         Cart{ready && count > 0 ? ` (${count})` : ""}
       </Link>
-      <Link href={signedIn ? "/account" : "/login"} className={`${item} ${on("/account")}`}>
-        <User aria-hidden className="size-5" /> Account
+      <Link href={isOwner ? "/dashboard" : "/signup"} className={`${item} ${on("/signup")}`}>
+        <Store aria-hidden className="size-5" /> {isOwner ? "My store" : "Sell"}
       </Link>
     </nav>
   );

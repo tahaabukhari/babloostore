@@ -10,9 +10,7 @@ import { Button, ProductImage, buttonClass } from "@/components/ui";
 import { deliveryCities, formatPrice } from "@/lib/data";
 import { useCartProducts } from "@/lib/useCartProducts";
 
-type Prefill = { name: string; email: string } | null;
-
-export function CheckoutForm({ prefill }: { prefill: Prefill }) {
+export function CheckoutForm() {
   const cart = useCartProducts();
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -88,7 +86,7 @@ export function CheckoutForm({ prefill }: { prefill: Prefill }) {
           <h2 className="text-[20px] font-bold leading-7">Delivery details</h2>
           <p className="text-sm text-ink-secondary">Each store receives these details to deliver your order and may call to confirm.</p>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field name="name" label="Full name" autoComplete="name" defaultValue={prefill?.name} error={fe.name} required />
+            <Field name="name" label="Full name" autoComplete="name" error={fe.name} required />
             <Field
               name="phone"
               label="Mobile number"
@@ -106,7 +104,6 @@ export function CheckoutForm({ prefill }: { prefill: Prefill }) {
             label="Email (optional)"
             type="email"
             autoComplete="email"
-            defaultValue={prefill?.email}
             help="For your order confirmation."
             error={fe.email}
           />

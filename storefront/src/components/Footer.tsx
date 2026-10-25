@@ -28,8 +28,8 @@ const columns = [
   {
     title: "Sell on BablooStore",
     links: [
-      { label: "How sellers are approved", href: "#" },
-      { label: "Seller sign-in (invited sellers)", href: "#" },
+      { label: "Open your store (invite only)", href: "/signup" },
+      { label: "Store owner sign in", href: "/login" },
     ],
   },
 ];

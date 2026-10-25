@@ -4,20 +4,20 @@ Rebranded from HomeBEZ (the brand used in the blueprint docs). Logo images in `p
 
 Next.js 15 (App Router) + Tailwind v4 marketplace on the v1 tokens in [`../design/tokens.css`](../design/tokens.css). Data lives in Postgres (Neon in production) through Drizzle ORM.
 
-**Testing build:** email + password accounts with no email verification, cash on delivery only, product photos added as image links.
+**Testing build:** email + password only (no email verification), invite-only store sign-up, cash on delivery only.
 
 ## How it works
 
 | Who | What they can do |
 | --- | --- |
-| Shopper (no account) | Browse, search, add to cart, check out with name / phone / address (cash on delivery) |
-| Shopper (account) | Same, plus orders listed under **Account**. Sign up at `/signup` |
-| Store owner | Created by us with `npm run owner`. Signs in at `/login` → `/dashboard`: store profile, products (create / edit / publish / archive / delete), orders with the customer's contact details and status updates |
+| Shopper | No account. Browse, search, add to cart, check out with name / phone / address (cash on delivery) |
+| Store owner | Signs up at `/signup` with an **invite code**, which creates their account and store together. Then `/dashboard`: store settings, products (photos, options, publish / draft / archive / delete) and orders with the customer's contact details and status updates. Signs back in at `/login` |
 
+- Invite codes live in the `INVITE_CODES` environment variable; each code works once. Add codes in Vercel and redeploy to let more stores in.
 - A checkout with items from several stores creates **one order per store**. Each owner only sees their own orders.
-- Prices and stock are always read from the database at checkout. Stock is reserved inside a transaction with a guarded update, so two shoppers can't both buy the last unit. Cancelling an order puts the stock back.
-- The dashboard refreshes every 15 seconds while the tab is open (Neon has no push channel; polling is enough for order volumes like these).
-- Only **active** products from **open** stores are public. Drafts and archived products are visible to their owner only.
+- Prices and stock are read from the database at checkout. Stock is reserved in a transaction with a guarded update, so two shoppers can't both buy the last unit. Cancelling an order puts the stock back.
+- The dashboard refreshes every 15 seconds while open (Neon has no push channel).
+- Product photos are resized in the browser (max 1600 px, WebP) and stored in the Neon Object Storage bucket `stores`.
 
 ## Routes
 
@@ -25,54 +25,47 @@ Next.js 15 (App Router) + Tailwind v4 marketplace on the v1 tokens in [`../desig
 | --- | --- |
 | `/`, `/search`, `/product/[slug]`, `/search?store=<slug>` | Shop |
 | `/cart`, `/checkout`, `/order/[checkoutId]` | Cart, guest checkout, confirmation |
-| `/login`, `/signup`, `/account` | Accounts |
+| `/signup`, `/login` | Store owner sign-up (invite code) and sign-in |
 | `/dashboard`, `/dashboard/orders`, `/dashboard/products`, `/dashboard/store` | Store owner dashboard |
 | `/design` | Component review kit |
 
-## Setup
+## Deploying on Vercel
+
+1. **Root Directory:** `storefront` (Project → Settings → Build and Deployment).
+2. **Environment variables** (Project → Settings → Environment Variables):
+
+   | Name | Value |
+   | --- | --- |
+   | `DATABASE_URL` | Neon **pooled** connection string (`postgresql://…-pooler…/neondb?sslmode=require`). Added automatically if you connected Neon through Vercel's integration |
+   | `INVITE_CODES` | Comma-separated codes, e.g. `BS-7K2Q9M,BS-P4XW8N` |
+   | `AWS_ENDPOINT_URL_S3`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | From Neon Console → Connect → **Storage** |
+   | `S3_BUCKET` | `stores` |
+
+3. In Neon's Object storage tab, set the `stores` bucket's access level to **public_read** so product photos can be displayed.
+4. Deploy. The `vercel-build` script runs database migrations before `next build`, so tables are created and kept up to date automatically.
+
+The Neon **Data API** is not used by this app. Leave it off unless you need it.
+
+## Local development
 
 ```bash
 npm install
-```
-
-### Option A — Neon (shared, used for deployment)
-
-1. Put the **pooled** connection string in `.env.local`:
-   ```
-   DATABASE_URL=postgresql://USER:PASSWORD@ep-xxxx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
-   ```
-2. Create the tables: `npm run db:migrate`
-3. Add store owners (see below), then `npm run dev`.
-
-### Option B — local only, no account needed
-
-Leave `DATABASE_URL` unset. The app uses an embedded Postgres (PGlite) stored in `./.data/pglite`.
-
-```bash
+cp .env.example .env.local   # optional: fill in DATABASE_URL to use Neon instead of the local DB
 npm run db:migrate
-npm run owner -- --email araza@homebez.com --name "Ali Raza" --store "Araza Fabrics"
 npm run dev
 ```
 
-PGlite allows one process at a time: **stop `npm run dev` before running `db:migrate` or `owner`**.
+With `DATABASE_URL` empty the app uses an embedded Postgres (PGlite) in `./.data/pglite`. It allows one process at a time: **stop `npm run dev` before running `db:migrate` or `owner`**. Set `INVITE_CODES` in `.env.local` to test sign-up. Without the storage variables, photos can still be added as links.
 
-## Store owner accounts
+## Admin script
 
 ```bash
-# create (prints a generated password once) and give them a store
-npm run owner -- --email araza@homebez.com --name "Ali Raza" --store "Araza Fabrics" --city Lahore
-
-# set a known password / reset a password
-npm run owner -- --email araza@homebez.com --password "new-password"
-
-# promote an existing shopper account to owner
-npm run owner -- --email someone@example.com
-
-# list owners
-npm run owner -- --list
+npm run owner -- --list                                              # list store owners
+npm run owner -- --email araza@homebez.com --password "new-password" # reset a password
+npm run owner -- --email x@y.com --name "Name" --store "Store"       # create an owner without an invite
 ```
 
-Owners without a store are asked to set one up on first sign-in. To mark a store as verified, set `stores.verified = true` in the Neon SQL editor.
+To mark a store as verified, set `stores.verified = true` in the Neon SQL editor.
 
 ## Changing the schema
 
@@ -85,4 +78,4 @@ npm run db:migrate    # applies it
 
 ## Not built yet
 
-Image uploads (links only for now), email verification and password reset emails, login rate limiting, online payments, per-variant stock, returns, an admin panel.
+Email verification and password reset emails, login rate limiting, online payments, per-variant stock, returns, an admin panel.
