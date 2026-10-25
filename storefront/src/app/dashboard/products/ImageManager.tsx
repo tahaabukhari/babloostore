@@ -17,8 +17,11 @@ async function compress(file: File): Promise<Blob> {
   canvas.height = Math.round(bitmap.height * scale);
   canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/webp", 0.85));
-  return blob ?? file;
+  const encode = (type: string) => new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, 0.85));
+  // Safari can't encode WebP and silently returns a large PNG instead, so fall back to JPEG.
+  const webp = await encode("image/webp");
+  if (webp?.type === "image/webp") return webp;
+  return (await encode("image/jpeg")) ?? file;
 }
 
 export function ImageManager({
@@ -49,7 +52,7 @@ export function ImageManager({
       try {
         const blob = await compress(file);
         const fd = new FormData();
-        fd.append("file", new File([blob], "photo.webp", { type: blob.type || file.type }));
+        fd.append("file", new File([blob], blob.type === "image/jpeg" ? "photo.jpg" : "photo.webp", { type: blob.type || file.type }));
         const res = await uploadProductImage(fd);
         if (res.url) setImages((prev) => [...prev, res.url!].slice(0, MAX_IMAGES));
         else setMessage(res.error);

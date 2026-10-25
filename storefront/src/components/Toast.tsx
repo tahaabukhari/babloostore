@@ -35,7 +35,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       <div
         role="status"
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex flex-col items-center gap-2 px-4 lg:bottom-6 lg:items-end lg:pr-8"
+        // Top on phones so toasts never cover the sticky purchase bar or the options above it.
+        className="pointer-events-none fixed inset-x-0 top-3 z-[60] flex flex-col items-center gap-2 px-4 lg:bottom-6 lg:top-auto lg:items-end lg:pr-8"
       >
         {toasts.map((t) => {
           const { cls, Icon } = toneStyles[t.tone];

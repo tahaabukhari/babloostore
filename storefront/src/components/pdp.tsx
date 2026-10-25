@@ -12,7 +12,7 @@ type OptionValue = { label: string; swatch?: string; available: boolean; reason?
 export type ProductOption = { name: string; values: OptionValue[] };
 
 /** Options as stored in the database (plain value lists; every value is buyable). */
-export function toSelectorOptions(options: { name: string; values: string[] }[]): ProductOption[] {
+function toSelectorOptions(options: { name: string; values: string[] }[]): ProductOption[] {
   return options.map((o) => ({ name: o.name, values: o.values.map((v) => ({ label: v, available: true })) }));
 }
 
@@ -117,7 +117,7 @@ export function VariantSelector({
   const id = `opt-${option.name}`;
   const unavailableSelected = option.values.find((v) => v.label === value && !v.available);
   return (
-    <fieldset aria-describedby={showError ? `${id}-err` : undefined}>
+    <fieldset id={`${id}-group`} className="scroll-mt-24" aria-describedby={showError ? `${id}-err` : undefined}>
       <legend className="mb-2 text-sm">
         <span className="font-semibold">{option.name}:</span>{" "}
         <span className="text-ink-secondary">{value ?? `Choose your ${option.name.toLowerCase()}`}</span>
@@ -204,9 +204,12 @@ export function QuantityControl({
 
 /* ---------- Purchase panel ---------- */
 
-type PanelProduct = { id: string; title: string; price: number; stock: number; options: ProductOption[] };
+// Options arrive as stored in the database; this is a client module, so the
+// server page passes plain data and the conversion happens here.
+type PanelProduct = { id: string; title: string; price: number; stock: number; options: { name: string; values: string[] }[] };
 
-export function PurchasePanel({ product }: { product: PanelProduct }) {
+export function PurchasePanel({ product: raw }: { product: PanelProduct }) {
+  const product = { ...raw, options: toSelectorOptions(raw.options) };
   const { add } = useCart();
   const toast = useToast();
   const [selection, setSelection] = useState<Record<string, string>>(() =>
@@ -223,7 +226,15 @@ export function PurchasePanel({ product }: { product: PanelProduct }) {
   function addToCart() {
     if (state === "loading") return; // duplicate-submit guard
     setTried(true);
-    if (missing.length || blocked || soldOut) return;
+    if (missing.length) {
+      // On phones the options are often scrolled out of view behind the sticky bar.
+      const group = document.getElementById(`opt-${missing[0].name}-group`);
+      group?.scrollIntoView({ behavior: "smooth", block: "center" });
+      group?.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });
+      toast({ tone: "info", message: `Choose your ${missing.map((m) => m.name.toLowerCase()).join(" and ")} first.` });
+      return;
+    }
+    if (blocked || soldOut) return;
     add(product.id, selection, qty, product.stock);
     setState("added");
     toast({ tone: "success", message: `Added ${qty} × ${product.title} to your cart.` });

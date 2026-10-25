@@ -33,7 +33,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               </Link>
             )}
             <form action={signOut}>
-              <button type="submit" className="flex min-h-11 items-center gap-1.5 rounded-control px-3 text-sm hover:bg-white/10">
+              <button type="submit" aria-label="Sign out" className="flex min-h-11 items-center gap-1.5 rounded-control px-3 text-sm hover:bg-white/10">
                 <LogOut aria-hidden className="size-4" /> <span className="hidden sm:inline">Sign out</span>
               </button>
             </form>

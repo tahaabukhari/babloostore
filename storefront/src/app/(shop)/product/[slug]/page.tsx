@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Banknote, ChevronRight, MapPin, RotateCcw, ShieldCheck, Store, Truck } from "lucide-react";
-import { Gallery, PurchasePanel, toSelectorOptions } from "@/components/pdp";
+import { Gallery, PurchasePanel } from "@/components/pdp";
 import { ProductRow } from "@/components/ProductCard";
 import { Price, SectionHeader, TrustBadge, buttonClass } from "@/components/ui";
 import { getPublicProduct, moreFromStore, relatedProducts } from "@/lib/catalog";
@@ -75,7 +75,7 @@ export default async function ProductPage({ params }: Props) {
               title: product.title,
               price: product.price,
               stock: product.stock,
-              options: toSelectorOptions(product.options),
+              options: product.options,
             }}
           />
           {(product.highlights.length > 0 || product.description) && (
