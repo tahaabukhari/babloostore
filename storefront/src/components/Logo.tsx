@@ -5,7 +5,7 @@ import Link from "next/link";
 // vector logo is still required (see README "compact production logo").
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
-    <Link href="/" aria-label="BablooStore home" className="flex shrink-0 items-center gap-2 rounded-md">
+    <Link href="/" aria-label="HomeBEZ home" className="flex shrink-0 items-center gap-2 rounded-md">
       <Image src="/brand/homebez-symbol.png" alt="" width={40} height={40} priority className="size-9 lg:size-10" />
       {!compact && (
         <Image

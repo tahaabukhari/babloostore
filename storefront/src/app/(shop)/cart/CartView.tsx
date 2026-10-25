@@ -97,7 +97,7 @@ export function CartView() {
                     {g.store.name}
                   </Link>
                 </h2>
-                {g.store.verified && <TrustBadge verified explanation="Store details checked by BablooStore" />}
+                {g.store.verified && <TrustBadge verified explanation="Store details checked by HomeBEZ" />}
                 <span className="text-xs text-ink-secondary sm:ml-auto">
                   Ships from {g.store.city} in {g.store.dispatchDays}
                 </span>

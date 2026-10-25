@@ -1,4 +1,4 @@
-# BablooStore storefront
+# HomeBEZ storefront
 
 Logo: `public/brand/*` and `src/app/icon.png` are cut from `../design/assets/homebez-logo-v2.webp` (cart + house mark, HomeBEZ wordmark).
 

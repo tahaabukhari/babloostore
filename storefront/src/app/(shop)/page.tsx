@@ -64,12 +64,12 @@ export default async function HomePage() {
       </section>
 
       {/* Service strip — only promises that are true today */}
-      <section aria-label="Shopping with BablooStore">
+      <section aria-label="Shopping with HomeBEZ">
         <ul className="grid grid-cols-2 gap-3 rounded-card border border-border bg-surface p-3 text-sm lg:grid-cols-4 lg:p-4">
           {[
             { Icon: Banknote, title: "Cash on delivery", body: "Pay when your parcel arrives" },
             { Icon: RotateCcw, title: "Store return rules", body: "Shown on every product before you order" },
-            { Icon: Store, title: "Stores set up by us", body: "Every seller account is created by BablooStore" },
+            { Icon: Store, title: "Invited stores only", body: "Every store joins HomeBEZ by invitation" },
             { Icon: Truck, title: "Delivery fee per store", body: "Each store ships separately" },
           ].map(({ Icon, title, body }) => (
             <li key={title} className="flex items-start gap-2.5">
@@ -154,7 +154,7 @@ export default async function HomePage() {
                     </p>
                     {s.verified && (
                       <div className="mt-2">
-                        <TrustBadge verified explanation="Store details checked by BablooStore" />
+                        <TrustBadge verified explanation="Store details checked by HomeBEZ" />
                       </div>
                     )}
                     {s.tagline && <p className="mt-2 line-clamp-2 text-sm text-ink-secondary">{s.tagline}</p>}

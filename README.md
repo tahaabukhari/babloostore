@@ -34,7 +34,7 @@ The visual system is the chosen v1 baseline. Rendered screens still need review 
 
 ## Storefront prototype
 
-[storefront/](storefront/README.md) is the BablooStore Next.js marketplace: Postgres (Neon) via Drizzle, invite-only store sign-up, store owner dashboard (products with photo uploads, orders), and cash-on-delivery checkout that splits orders per store.
+[storefront/](storefront/README.md) is the HomeBEZ Next.js marketplace: Postgres (Neon) via Drizzle, invite-only store sign-up, store owner dashboard (products with photo uploads, orders), and cash-on-delivery checkout that splits orders per store.
 
 ## Saved references and verification
 

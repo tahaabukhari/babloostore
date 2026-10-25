@@ -142,7 +142,7 @@ export default function DesignKitPage() {
         <Block title="Trust, stock, price">
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
-              <TrustBadge verified explanation="Store details checked by BablooStore" />
+              <TrustBadge verified explanation="Store details checked by HomeBEZ" />
               <TrustBadge verified={false} explanation="Verification in progress" />
             </div>
             <div className="flex flex-wrap gap-4">

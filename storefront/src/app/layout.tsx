@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "sw
 const manrope = Manrope({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-manrope", display: "swap" });
 
 export const metadata: Metadata = {
-  title: { default: "BablooStore — Everything you need, all in one place", template: "%s · BablooStore" },
+  title: { default: "HomeBEZ — Everything you need, all in one place", template: "%s · HomeBEZ" },
   description: "Pakistani marketplace of independent stores: fashion, beauty, jewellery, electronic accessories and home.",
 };
 

@@ -137,11 +137,11 @@ export default async function ProductPage({ params }: Props) {
               <h2 className="font-heading text-base font-bold">{store.name}</h2>
             </div>
             <p className="mt-0.5 text-xs text-ink-secondary">
-              {store.city} · on BablooStore since {store.createdAt.getFullYear()}
+              {store.city} · on HomeBEZ since {store.createdAt.getFullYear()}
             </p>
             {store.verified && (
               <div className="mt-3">
-                <TrustBadge verified explanation="Store details checked by BablooStore" />
+                <TrustBadge verified explanation="Store details checked by HomeBEZ" />
               </div>
             )}
             <Link href={`/search?store=${store.slug}`} className={buttonClass("secondary", "md", "mt-4 w-full")}>

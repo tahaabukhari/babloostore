@@ -49,7 +49,7 @@ export default async function SearchPage({ searchParams }: Props) {
         <section className="mb-5 rounded-card border border-border bg-surface p-4 lg:p-5">
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="text-[20px] font-bold leading-7">{store.name}</h2>
-            {store.verified && <TrustBadge verified explanation="Store details checked by BablooStore" />}
+            {store.verified && <TrustBadge verified explanation="Store details checked by HomeBEZ" />}
           </div>
           {store.tagline && <p className="mt-1 text-sm">{store.tagline}</p>}
           <p className="mt-1 text-sm text-ink-secondary">
