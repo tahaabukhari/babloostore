@@ -1,8 +1,8 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, NoSuchKey, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 // Neon Object Storage (S3-compatible). Env names match what Neon's Console
-// "Connect > Storage" shows. The bucket must use the `public_read` access level
-// so product photos can be shown straight from storage.
+// "Connect > Storage" shows. The bucket can stay private: photos are served
+// through /media/<key>, which Vercel's CDN caches.
 const env = () => ({
   endpoint: process.env.AWS_ENDPOINT_URL_S3,
   region: process.env.AWS_REGION ?? "ap-southeast-1",
@@ -30,22 +30,20 @@ function s3() {
   }));
 }
 
-export function publicUrl(key: string) {
-  const e = env();
-  const base = process.env.S3_PUBLIC_URL ?? `${e.endpoint!.replace(/\/+$/, "")}/${e.bucket}`;
-  return `${base}/${key}`;
+/** Path the app serves an uploaded object from. */
+export const mediaPath = (key: string) => `/media/${key}`;
+
+export async function putObject(key: string, body: Uint8Array, contentType: string) {
+  await s3().send(new PutObjectCommand({ Bucket: env().bucket, Key: key, Body: body, ContentType: contentType }));
+  return mediaPath(key);
 }
 
-export async function putPublicObject(key: string, body: Uint8Array, contentType: string) {
-  await s3().send(
-    new PutObjectCommand({
-      Bucket: env().bucket,
-      Key: key,
-      Body: body,
-      ContentType: contentType,
-      // Keys are unique per upload, so browsers and CDNs can cache forever.
-      CacheControl: "public, max-age=31536000, immutable",
-    }),
-  );
-  return publicUrl(key);
+export async function getObject(key: string) {
+  try {
+    const res = await s3().send(new GetObjectCommand({ Bucket: env().bucket, Key: key }));
+    return res.Body ? { body: res.Body.transformToWebStream(), contentType: res.ContentType, length: res.ContentLength } : null;
+  } catch (e) {
+    if (e instanceof NoSuchKey || (e as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode === 404) return null;
+    throw e;
+  }
 }

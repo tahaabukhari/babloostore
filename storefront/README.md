@@ -17,7 +17,7 @@ Next.js 15 (App Router) + Tailwind v4 marketplace on the v1 tokens in [`../desig
 - A checkout with items from several stores creates **one order per store**. Each owner only sees their own orders.
 - Prices and stock are read from the database at checkout. Stock is reserved in a transaction with a guarded update, so two shoppers can't both buy the last unit. Cancelling an order puts the stock back.
 - The dashboard refreshes every 15 seconds while open (Neon has no push channel).
-- Product photos are resized in the browser (max 1600 px, WebP) and stored in the Neon Object Storage bucket `stores`.
+- Product photos are resized in the browser (max 1600 px, WebP), stored in the private Neon Object Storage bucket `stores`, and served via `/media/...`.
 
 ## Routes
 
@@ -41,7 +41,7 @@ Next.js 15 (App Router) + Tailwind v4 marketplace on the v1 tokens in [`../desig
    | `AWS_ENDPOINT_URL_S3`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | From Neon Console → Connect → **Storage** |
    | `S3_BUCKET` | `stores` |
 
-3. In Neon's Object storage tab, set the `stores` bucket's access level to **public_read** so product photos can be displayed.
+3. The `stores` bucket can stay **private**: photos are served through the app at `/media/...` and cached by Vercel.
 4. Deploy. The `vercel-build` script runs database migrations before `next build`, so tables are created and kept up to date automatically.
 
 The Neon **Data API** is not used by this app. Leave it off unless you need it.

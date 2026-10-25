@@ -31,7 +31,14 @@ const productSchema = z
     stock: z.coerce.number().int("Whole numbers only.").min(0).max(100_000),
     images: z.preprocess(
       lines,
-      z.array(z.url({ protocol: /^https?$/, error: "Each line must be a full image link starting with https://" })).max(6, "Up to 6 images."),
+      z
+        .array(
+          z.union([
+            z.string().regex(/^\/media\/[\w/.-]+$/), // uploaded to our storage
+            z.url({ protocol: /^https?$/, error: "Each image link must start with https://" }),
+          ]),
+        )
+        .max(6, "Up to 6 images."),
     ),
     warranty: z.string().trim().max(200).optional(),
     intent: z.enum(["draft", "active"]).default("draft"),
